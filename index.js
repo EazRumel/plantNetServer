@@ -49,20 +49,41 @@ async function run() {
    
   const userCollection = client.db("treePlanet").collection("users");
 
+   const plantsCollection = client.db("treePlanet").collection("plants");
 
 
 
 
+
+
+
+   //get plants
+
+   app.get("/plants",async(req,res)=>{
+    const result = await plantsCollection.find().toArray();
+    res.send(result);
+   })
+
+  //get reviews
   app.get("/reviews",async(req,res)=>{
     const result = await reviewCollection.find().toArray();
     res.send(result);
   })
 
 
+
+  //post users
   app.post("/users",async(req,res)=>{
     const user = req.body;
     // const query = {email:user.email};
     const result = await userCollection.insertOne(user);
+    res.send(result);
+  })
+
+
+  //get users api
+  app.get("/users",async(req,res)=>{
+    const result = await userCollection.find().toArray();
     res.send(result);
   })
 
