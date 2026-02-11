@@ -51,6 +51,8 @@ async function run() {
 
    const plantsCollection = client.db("treePlanet").collection("plants");
 
+   const cartCollection = client.db("treePlanet").collection("carts");
+
 
 
 
@@ -63,6 +65,8 @@ async function run() {
     const result = await plantsCollection.find().toArray();
     res.send(result);
    })
+
+   
 
   //get reviews
   app.get("/reviews",async(req,res)=>{
@@ -84,6 +88,15 @@ async function run() {
   //get users api
   app.get("/users",async(req,res)=>{
     const result = await userCollection.find().toArray();
+    res.send(result);
+  })
+
+
+  //cart related apis
+
+  app.post("/carts",async(req,res)=>{
+    const cartItem = req.body;
+    const result = await cartCollection.insertOne(cartItem);
     res.send(result);
   })
 
