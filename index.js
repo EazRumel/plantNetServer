@@ -1,11 +1,16 @@
 
-const express = require ("express")
-const cors = require("cors")
-const jwt = require("jsonwebtoken")
-require("dotenv").config()
+const express = require ("express");
+const cors = require("cors");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
+const cookieParser = require("cookie-parser");
 
 const app = express()
-const port = process.env.PORT || 3000;  
+const port = process.env.PORT || 3000; 
+
+
+//middlewares 
+app.use(cookieParser());
 app.use(cors());
 app.use(express.json());
 
@@ -22,7 +27,7 @@ app.use(express.json());
 
 
 
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId, CommandSucceededEvent } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.t89ec.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -55,6 +60,19 @@ async function run() {
 
 
 
+
+
+   //jwt related api
+
+   app.post("/jwt",(req,res)=>{
+     const user = req.body;
+     const token = jwt.sign(user,process.env.JWT_TOKEN,{expiresIn:"2h"})
+     res.cookie("token",token,{
+      httpOnly:true,
+      secure:false,
+     })
+     .send({success:true});
+   })
 
 
 
