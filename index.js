@@ -10,9 +10,13 @@ const port = process.env.PORT || 3000;
 
 
 //middlewares 
-app.use(cookieParser());
-app.use(cors());
+app.use(cors({
+  origin:["http://localhost:5173"],
+  credentials:true
+}));
 app.use(express.json());
+app.use(cookieParser());
+
 
 
 
@@ -64,6 +68,7 @@ async function run() {
 
    //jwt related api
 
+
    app.post("/jwt",(req,res)=>{
      const user = req.body;
      const token = jwt.sign(user,process.env.JWT_TOKEN,{expiresIn:"2h"})
@@ -74,12 +79,30 @@ async function run() {
      .send({success:true});
    })
 
+   const verifyToken =(req,res,next)=>{
+
+       const token = req?.cookies?.token;
+      //  console.log("to check the cookies if it exists or not",req.cookies)
+      if(!token){
+        res.status(401).send({message:"Unauthorized Access"})
+      }
+      jwt.verify(token,process.env.JWT_TOKEN,(error,decoded)=>
+
+      {
+         if(error){
+          res.status(401).send({message:"Unauthorized Access"})
+         }
+          next();
+      }
+    )}
+
 
 
 
    //get plants
 
    app.get("/plants",async(req,res)=>{
+
     const result = await plantsCollection.find().toArray();
     res.send(result);
    })
@@ -87,8 +110,9 @@ async function run() {
 
 
     app.get("/plants/:id",async(req,res)=>{
+     
     const id = req.params.id;
-    const query = {_id:new ObjectId(id)}
+    const query = {_id : new ObjectId (id)}
     result = await plantsCollection.findOne(query);
     res.send(result);
   })
