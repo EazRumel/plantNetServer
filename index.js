@@ -79,6 +79,14 @@ async function run() {
      .send({success:true});
    })
 
+   app.post("/logOutJwt",async(req,res)=>{
+      res.clearCookie("token",{
+        httpOnly:true,
+        secure:false
+      })
+      .send({success:true})
+   })
+
    const verifyToken =(req,res,next)=>{
 
        const token = req?.cookies?.token;
