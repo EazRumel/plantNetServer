@@ -1,12 +1,13 @@
 
 const express = require ("express");
 const cors = require("cors");
-const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const cookieParser = require("cookie-parser");
 
 const app = express()
 const port = process.env.PORT || 3000; 
+
+const verifyToken = require("./middleware/verifyToken");
 
 
 //middlewares 
@@ -87,22 +88,22 @@ async function run() {
       .send({success:true})
    })
 
-   const verifyToken =(req,res,next)=>{
+  //  const verifyToken =(req,res,next)=>{
 
-       const token = req?.cookies?.token;
-      //  console.log("to check the cookies if it exists or not",req.cookies)
-      if(!token){
-        res.status(401).send({message:"Unauthorized Access"})
-      }
-      jwt.verify(token,process.env.JWT_TOKEN,(error,decoded)=>
+  //      const token = req?.cookies?.token;
+  //      console.log("to check the cookies if it exists or not",req.cookies)
+  //     if(!token){
+  //       res.status(401).send({message:"Unauthorized Access"})
+  //     }
+  //     jwt.verify(token,process.env.JWT_TOKEN,(error,decoded)=>
 
-      {
-         if(error){
-          res.status(401).send({message:"Unauthorized Access"})
-         }
-          next();
-      }
-    )}
+  //     {
+  //        if(error){
+  //         res.status(401).send({message:"Unauthorized Access"})
+  //        }
+  //         next();
+  //     }
+  //   )}
 
 
 
