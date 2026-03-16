@@ -1,5 +1,6 @@
 
-const express = require ("express");
+const express = require("express");
+const jwt = require("jsonwebtoken")
 const cors = require("cors");
 require("dotenv").config();
 const cookieParser = require("cookie-parser");
@@ -7,7 +8,7 @@ const cookieParser = require("cookie-parser");
 const app = express()
 const port = process.env.PORT || 3000; 
 
-const verifyToken = require("./middleware/verifyToken");
+
 
 
 //middlewares 
@@ -76,6 +77,7 @@ async function run() {
      res.cookie("token",token,{
       httpOnly:true,
       secure:false,
+      sameSite:"lax"
      })
      .send({success:true});
    })
@@ -83,27 +85,29 @@ async function run() {
    app.post("/logOutJwt",async(req,res)=>{
       res.clearCookie("token",{
         httpOnly:true,
-        secure:false
+        secure:false,
+        sameSite:"lax"
+
       })
       .send({success:true})
    })
 
-  //  const verifyToken =(req,res,next)=>{
+   const verifyToken =(req,res,next)=>{
 
-  //      const token = req?.cookies?.token;
-  //      console.log("to check the cookies if it exists or not",req.cookies)
-  //     if(!token){
-  //       res.status(401).send({message:"Unauthorized Access"})
-  //     }
-  //     jwt.verify(token,process.env.JWT_TOKEN,(error,decoded)=>
+       const token = req?.cookies?.token;
+       console.log("to check the cookies if it exists or not",req.cookies)
+      if(!token){
+        res.status(401).send({message:"Unauthorized Access"})
+      }
+      jwt.verify(token,process.env.JWT_TOKEN,(error,decoded)=>
 
-  //     {
-  //        if(error){
-  //         res.status(401).send({message:"Unauthorized Access"})
-  //        }
-  //         next();
-  //     }
-  //   )}
+      {
+         if(error){
+          return res.status(401).send({message:"Unauthorized Access"})
+         }
+          next();
+      }
+    )}
 
 
 
@@ -162,12 +166,19 @@ async function run() {
   })
 
  
-  app.get("/carts",async(req,res)=>{
+  app.get("/carts",verifyToken,async(req,res)=>{
     const email = req.query.email;
 
     const query = {email:email};
 
     const result = await cartCollection.find(query).toArray();
+    res.send(result);
+  })
+
+  app.delete("/carts/:id",async(req,res)=>{
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)};
+    const result = await cartCollection.deleteOne(query);
     res.send(result);
   })
 
