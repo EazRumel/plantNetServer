@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken")
 const cors = require("cors");
 require("dotenv").config();
 const cookieParser = require("cookie-parser");
+const morgan = require('morgan')
 
 const app = express()
 const port = process.env.PORT || 3000; 
@@ -18,6 +19,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+app.use(morgan("dev"))
 
 
 
@@ -57,6 +59,8 @@ async function run() {
     
 
     const reviewCollection = client.db("treePlanet").collection("reviews");
+
+    const orderCollection = client.db("treePlanet").collection("orders");
    
   const userCollection = client.db("treePlanet").collection("users");
 
@@ -145,9 +149,9 @@ async function run() {
   app.post("/users",async(req,res)=>{
     const user = req.body;
     const query = {email:user.email};
-    const existingUser = await user.collection.findOne(query)
+    const existingUser = await userCollection.findOne(query)
     if(existingUser){
-      return res.send({message:"User already exists"})
+      return res.send({message:"User already exists",insertedId:null})
     }
     const result = await userCollection.insertOne(user);
     res.send(result);
