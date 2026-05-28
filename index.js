@@ -77,7 +77,7 @@ async function run() {
 
    app.post("/jwt",(req,res)=>{
      const user = req.body;
-     const token = jwt.sign(user,process.env.JWT_TOKEN,{expiresIn:"2h"})
+     const token = jwt.sign(user,process.env.JWT_TOKEN,{expiresIn:"1h"})
      res.cookie("token",token,{
       httpOnly:true,
       secure:false,
@@ -99,7 +99,7 @@ async function run() {
    const verifyToken =(req,res,next)=>{
 
        const token = req?.cookies?.token;
-       console.log("to check the cookies if it exists or not",req.cookies)
+      //  console.log("to check the cookies if it exists or not",req.cookies)
       if(!token){
         res.status(401).send({message:"Unauthorized Access"})
       }
@@ -141,6 +141,12 @@ async function run() {
   app.get("/reviews",async(req,res)=>{
     const result = await reviewCollection.find().toArray();
     res.send(result);
+  })
+
+  //post reviews
+  app.post("/review",async(req,res)=>{
+    const user = req.body;
+    const result = await reviewCollection.insertOne(user);
   })
 
 
@@ -189,7 +195,6 @@ async function run() {
     const result = await cartCollection.deleteOne(query);
     res.send(result);
   })
-
 
 
 
