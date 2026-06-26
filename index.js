@@ -159,7 +159,11 @@ async function run() {
     if(existingUser){
       return res.send({message:"User already exists",insertedId:null})
     }
-    const result = await userCollection.insertOne(user);
+    
+    const result = await userCollection.insertOne({
+      user,
+      role:"customer"
+    });
     res.send(result);
   })
 
