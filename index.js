@@ -143,6 +143,8 @@ async function run() {
     res.send(result);
   })
 
+    //patch the increment decrement of quantity
+
   app.patch("/plants/quantity/:id",verifyToken,async(req,res)=>{
     const {updateQuantity} = req.body;
     const id = req.params.id;
@@ -167,7 +169,50 @@ async function run() {
   })
 
 
-  //patch the increment decrement of quantity
+  app.get("/customer/order/:email",async(req,res)=>{
+    const email = req.params.email;
+    const query = {"customer.email":email}
+    // const result = await orderCollection.find(query).toArray();
+
+    const result = await orderCollection.aggregate([
+      {
+        $match:query
+      },
+      {
+         $addFields: {
+         plantId:{$toObjectId:"$plantId"}
+       }
+      },
+      {
+        $lookup:{
+          from:"plants",
+          localField:"plantId",
+          foreignField:"_id",
+          as:"plants"
+        },
+        
+      }
+      ,
+      {
+        $unwind:"$plants"
+      }, 
+      {
+        $addFields:{
+          name:"$plants.name",
+          category:"$plants.category",
+          image:"$plants.image"
+        },
+        
+      },
+      {
+        $project:{
+          plants:0
+        }
+      }
+    ]).toArray();
+    res.send(result);
+  })
+
 
   
 
