@@ -68,6 +68,8 @@ async function run() {
 
    const cartCollection = client.db("treePlanet").collection("carts");
 
+ 
+
 
 
 
@@ -118,6 +120,13 @@ async function run() {
 
    //get plants
 
+
+  app.post("/plants",async(req,res)=>{
+    const plant = req.body;
+    const result = await plantsCollection.insertOne(plant);
+    res.send(result); 
+  })
+
    app.get("/plants",async(req,res)=>{
 
     const result = await plantsCollection.find().toArray();
@@ -131,6 +140,15 @@ async function run() {
     const id = req.params.id;
     const query = {_id : new ObjectId (id)}
     result = await plantsCollection.findOne(query);
+    res.send(result);
+  })
+
+
+  //orders api
+
+  app.post("/order",verifyToken,async(req,res)=>{
+    const orderInfo = req.body;
+    const result = await orderCollection.insertOne(orderInfo);
     res.send(result);
   })
 
