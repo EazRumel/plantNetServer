@@ -143,6 +143,20 @@ async function run() {
     res.send(result);
   })
 
+  app.patch("/plants/quantity/:id",verifyToken,async(req,res)=>{
+    const {updateQuantity} = req.body;
+    const id = req.params.id;
+    const filter = {_id: new ObjectId(id)}
+    let updatedDoc = {
+        $inc: {
+          quantity:-updateQuantity
+        }
+    }
+    const result = await plantsCollection.updateOne(filter,updatedDoc)
+    res.send(result)
+    // console.log("Id is: ",id)
+  })
+
 
   //orders api
 
@@ -152,6 +166,10 @@ async function run() {
     res.send(result);
   })
 
+
+  //patch the increment decrement of quantity
+
+  
 
    
 
