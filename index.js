@@ -146,13 +146,25 @@ async function run() {
     //patch the increment decrement of quantity
 
   app.patch("/plants/quantity/:id",verifyToken,async(req,res)=>{
-    const {updateQuantity} = req.body;
+    const { updateQuantity,status } = req.body;
+    const quantity = Number(updateQuantity)
     const id = req.params.id;
     const filter = {_id: new ObjectId(id)}
-    let updatedDoc = {
+    let updatedDoc
+    if (status === "decrease"){
+      updatedDoc = {
         $inc: {
-          quantity:-updateQuantity
+          quantity:-quantity
         }
+    }
+    }
+
+    if(status === "increase"){
+         updatedDoc = {
+        $inc: {
+          quantity:quantity
+        }
+    }
     }
     const result = await plantsCollection.updateOne(filter,updatedDoc)
     res.send(result)
@@ -171,7 +183,12 @@ async function run() {
   app.delete("/order/:id",async(req,res)=>{
     const id = req.params.id;
     const query = {_id : new ObjectId(id)}
+    const order = await orderCollection.findOne(query);
+    if(order.status === "Delivered"){
+      return res.status(409).send("Cannot be deleted once delivered");
+    }
     const result = await orderCollection.deleteOne(query);
+
     res.send(result);
   })
 
