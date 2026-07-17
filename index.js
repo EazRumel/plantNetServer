@@ -259,19 +259,74 @@ async function run() {
 
 
   //post users
-  app.post("/users",async(req,res)=>{
-    const user = req.body;
-    const query = {email:user.email};
-    const existingUser = await userCollection.findOne(query)
-    if(existingUser){
-      return res.send({message:"User already exists",insertedId:null})
-    }
+  // app.post("/users",async(req,res)=>{
+  //   const user = req.body;
+  //   const query = {email:user.email};
+  //   const existingUser = await userCollection.findOne(query)
+  //   if(existingUser){
+  //     return res.send({message:"User already exists",insertedId:null})
+  //   }
     
-    const result = await userCollection.insertOne({
-      user,
-      role:"customer"
+  //   const result = await userCollection.insertOne({
+  //     user,
+  //     role:"customer"
+  //   });
+  //   res.send(result);
+  // })
+
+  app.post("/users", async(req,res)=>{
+  const user = req.body;
+
+  const query = { email: user.email };
+
+  const existingUser = await userCollection.findOne(query);
+
+  if(existingUser){
+    return res.send({
+      message:"User already exists",
+      insertedId:null
     });
-    res.send(result);
+  }
+
+  const result = await userCollection.insertOne({
+    ...user,
+    role:"customer",
+    // status:"customer"
+  });
+
+  res.send(result);
+});
+
+app.get("/all-users",async(req,res)=>{
+ const result = await userCollection.find().toArray();
+ res.send(result);
+//  console.log(result)
+})
+
+
+
+
+  app.patch("/users/:email",async(req,res)=>{
+    const email = req.params.email;
+    const query = {email}
+    const user = await userCollection.findOne(query);
+
+    if(!user){
+      res.status(404).send("User not found")
+    }
+    if( user.status === "Requested"){
+      res.status(400).send("You have already requested,please wait")
+    }
+
+
+    const updateDoc = {
+      $set:{
+        status:"Requested",
+      },
+    }
+    const result = await userCollection.updateOne(query,updateDoc)
+    console.log(result)
+    res.send(result)
   })
 
 
@@ -281,6 +336,15 @@ async function run() {
     res.send(result);
   })
 
+
+  //user role related api
+
+  app.get("/users/role/:email",async(req,res)=>{
+    const email = req.params.email;
+    const query = {email}
+    const result = await userCollection.findOne(query)
+    res.send({role:result?.role})
+  })
 
   //cart related apis
 
