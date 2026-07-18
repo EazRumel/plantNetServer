@@ -258,21 +258,7 @@ async function run() {
 
 
 
-  //post users
-  // app.post("/users",async(req,res)=>{
-  //   const user = req.body;
-  //   const query = {email:user.email};
-  //   const existingUser = await userCollection.findOne(query)
-  //   if(existingUser){
-  //     return res.send({message:"User already exists",insertedId:null})
-  //   }
-    
-  //   const result = await userCollection.insertOne({
-  //     user,
-  //     role:"customer"
-  //   });
-  //   res.send(result);
-  // })
+ 
 
   app.post("/users", async(req,res)=>{
   const user = req.body;
@@ -297,7 +283,7 @@ async function run() {
   res.send(result);
 });
 
-app.get("/all-users/:email",async(req,res)=>{
+app.get("/all-users/:email",verifyToken,async(req,res)=>{
   const email = req.params.email
   const query = {email : {$ne:email}} //$ne = not equal to
  const result = await userCollection.find(query).toArray();
@@ -306,12 +292,15 @@ app.get("/all-users/:email",async(req,res)=>{
 })
 
 
-app.patch("/users/role/:email",async(req,res)=>{
-  const email = req.params.email;c
-  const role = req.body;
+app.patch("/users/role/:email",verifyToken,async(req,res)=>{
+  const email = req.params.email;
+  const {role} = req.body;
   const query = {email:email};
   const updateDoc = {
-    $set:{role,status:"Verified"}
+    $set:{
+      role,
+      status:"Verified"
+    }
   }
   const result = await userCollection.updateOne(query,updateDoc);
   res.send(result);
@@ -339,8 +328,8 @@ app.patch("/users/role/:email",async(req,res)=>{
       },
     }
     const result = await userCollection.updateOne(query,updateDoc)
-    console.log(result)
-    res.send(result)
+    console.log(result);
+    res.send(result);
   })
 
 
