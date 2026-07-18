@@ -297,10 +297,24 @@ async function run() {
   res.send(result);
 });
 
-app.get("/all-users",async(req,res)=>{
- const result = await userCollection.find().toArray();
+app.get("/all-users/:email",async(req,res)=>{
+  const email = req.params.email
+  const query = {email : {$ne:email}} //$ne = not equal to
+ const result = await userCollection.find(query).toArray();
  res.send(result);
 //  console.log(result)
+})
+
+
+app.patch("/users/role/:email",async(req,res)=>{
+  const email = req.params.email;c
+  const role = req.body;
+  const query = {email:email};
+  const updateDoc = {
+    $set:{role,status:"Verified"}
+  }
+  const result = await userCollection.updateOne(query,updateDoc);
+  res.send(result);
 })
 
 
