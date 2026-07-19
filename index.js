@@ -111,9 +111,34 @@ async function run() {
          if(error){
           return res.status(401).send({message:"Unauthorized Access"})
          }
+          req.user = decoded;
           next();
       }
     )}
+
+
+    //verify admin middleware
+
+    const verifyAdmin =async(req,res,next)=>{
+      // console.log("verify from verify token",req.user.email);
+      const email = req?.user?.email;
+      const query = {email:email};
+      const data = await userCollection.findOne(query);
+      if(!data && data?.role !=="admin"){
+        return res.status(403).send({message:"Forbidden Access"})
+      }
+      next();
+    }
+
+     const verifySeller = async(req,res,next)=>{
+      const email = req?.user?.email;
+      const query = {email: email}
+      const data = await userCollection.findOne(query);
+      if(!data && data.role !== "seller"){
+         return res.status(403).send({message:"Forbidden Access"})
+      }
+      next();
+     }
 
 
 
@@ -283,7 +308,7 @@ async function run() {
   res.send(result);
 });
 
-app.get("/all-users/:email",verifyToken,async(req,res)=>{
+app.get("/all-users/:email",verifyToken,verifyAdmin,async(req,res)=>{
   const email = req.params.email
   const query = {email : {$ne:email}} //$ne = not equal to
  const result = await userCollection.find(query).toArray();
