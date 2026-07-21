@@ -124,22 +124,31 @@ async function run() {
       const email = req?.user?.email;
       const query = {email:email};
       const data = await userCollection.findOne(query);
-      if(!data && data?.role !=="admin"){
+      if(!data || data?.role !=="admin"){
         return res.status(403).send({message:"Forbidden Access"})
       }
       next();
     }
 
-     const verifySeller = async(req,res,next)=>{
-      const email = req?.user?.email;
-      const query = {email: email}
-      const data = await userCollection.findOne(query);
-      if(!data && data.role !== "seller"){
-         return res.status(403).send({message:"Forbidden Access"})
-      }
-      next();
-     }
+    //  const verifySeller = async(req,res,next)=>{
+    //   const email = req?.user?.email;
+    //   const query = {email: email}
+    //   const data = await userCollection.findOne(query);
+    //   if(!data && data.role !== "seller"){
+    //      return res.status(403).send({message:"Forbidden Access"})
+    //   }
+    //   next();
+    //  }
 
+    const verifySeller = async(req,res,next)=>{
+     const email = req?.user?.email;
+     const query = {email:email};
+     const result = await userCollection.findOne(query);
+     if(!result || result.role !== "seller"){
+      return res.status(403).send({message:"Forbidden Access"})
+     }
+     next();
+    }
 
 
 
@@ -155,6 +164,22 @@ async function run() {
    app.get("/plants",async(req,res)=>{
 
     const result = await plantsCollection.find().toArray();
+    res.send(result);
+   })
+
+   app.get("/plants/seller",verifyToken,verifySeller,async(req,res)=>{
+      const email = req.user.email;
+      // console.log("EmAIL: ",email)
+      const query = {"seller.email":email}
+      // console.log("From Seller",query);
+      const result = await plantsCollection.find(query).toArray();
+      res.send(result);
+   })
+
+   app.delete("/plants/:id",async(req,res)=>{
+    const id = req.params.id;
+    const query = {_id:new ObjectId(id)}
+    const result = await plantsCollection.deleteOne(query);
     res.send(result);
    })
 
@@ -317,7 +342,7 @@ app.get("/all-users/:email",verifyToken,verifyAdmin,async(req,res)=>{
 })
 
 
-app.patch("/users/role/:email",verifyToken,async(req,res)=>{
+app.patch("/users/role/:email",verifyToken,verifyAdmin,async(req,res)=>{
   const email = req.params.email;
   const {role} = req.body;
   const query = {email:email};
