@@ -14,7 +14,9 @@ const port = process.env.PORT || 3000;
 
 //middlewares 
 app.use(cors({
-  origin:["http://localhost:5173"],
+  origin:[
+    "http://localhost:5173"
+  ],
   credentials:true
 }));
 app.use(express.json());
@@ -54,7 +56,7 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
 
-     await client.connect();
+    //  await client.connect();
     // Send a ping to confirm a successful connection
     
 
@@ -169,14 +171,14 @@ async function run() {
 
    app.get("/plants/seller",verifyToken,verifySeller,async(req,res)=>{
       const email = req.user.email;
-      // console.log("EmAIL: ",email)
+      console.log("EmAIL: ",email)
       const query = {"seller.email":email}
-      // console.log("From Seller",query);
+      console.log("From Seller",query);
       const result = await plantsCollection.find(query).toArray();
       res.send(result);
    })
 
-   app.delete("/plants/:id",async(req,res)=>{
+   app.delete("/plants/:id",verifyToken,verifySeller,async(req,res)=>{
     const id = req.params.id;
     const query = {_id:new ObjectId(id)}
     const result = await plantsCollection.deleteOne(query);
@@ -290,11 +292,91 @@ async function run() {
   })
 
 
+  // app.get("/seller-order/:email",async(req,res)=>{
+
+  //     const email = req.params.email;
+  //     const query = {seller:email};
+  //     console.log(query)
+  //     const result = await orderCollection.aggregate([
+  //       {
+  //         $match:query
+  //       },
+  //       {
+  //         $addFields:{
+  //           plantId:{$toObjectId:"$plantId"}
+  //         }
+  //       },
+  //       {
+  //         $lookup:{
+  //           from:"plants",
+  //           localField:"plantId",
+  //           foreignField:"_id",
+  //           as:"plants"
+  //         }
+  //       },
+  //       {
+  //            $unwind:"$plants"
+  //       },
+  //       {
+  //         $addFields:{
+  //           name:"$plants.name"
+  //         }
+  //       },
+  //       {
+  //         $project:{
+  //           plants:0
+  //         }
+  //       }
+  //     ]).toArray();
+  //     res.send(result)
+  //     console.log("Result is: ",result)
+  // })
+
   
 
    
 
   //get reviews
+ 
+ 
+  app.get("/seller-order/:email",verifyToken,verifySeller,async(req,res)=>{
+    const email = req.params.email;
+    const query = {seller:email}
+    const result = await orderCollection.aggregate([
+      {
+        $match:query
+      },
+      {
+        $addFields:{
+          plantId:{$toObjectId:"$plantId"}
+        }
+      },
+      {
+       $lookup:{
+        from:"plants",
+        localField:"plantId",
+        foreignField:"_id",
+        as:"plants"
+       }
+      },
+      {
+        $unwind:"$plants"
+      },
+      {
+        $addFields:{
+          name:"$plants.name"
+        }
+      },
+      {
+        $project:{
+          plants:0
+        }
+      }
+    ]).toArray();
+    res.send(result)
+    console.log("From server side: ",result)
+  })
+  
   app.get("/reviews",async(req,res)=>{
     const result = await reviewCollection.find().toArray();
     res.send(result);
