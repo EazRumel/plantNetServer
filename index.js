@@ -338,6 +338,18 @@ async function run() {
 
   //get reviews
  
+
+  app.patch("/manageOrders/:id",async(req,res)=>{
+    const id = req.params.id;
+    const {status} = req.body;
+    const filter = {_id:new ObjectId(id)}
+
+    const updateDoc = {
+      $set:status
+    }
+    const result = await orderCollection.updateOne(filter,updateDoc)
+    res.send(result)
+  })
  
   app.get("/seller-order/:email",verifyToken,verifySeller,async(req,res)=>{
     const email = req.params.email;
@@ -348,7 +360,9 @@ async function run() {
       },
       {
         $addFields:{
-          plantId:{$toObjectId:"$plantId"}
+          plantId:{
+            $toObjectId:"$plantId"
+          }
         }
       },
       {
