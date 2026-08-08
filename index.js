@@ -21,7 +21,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
-app.use(morgan("dev"))
+app.use(morgan("dev"));
 
 
 
@@ -292,6 +292,17 @@ async function run() {
   })
 
 
+  //admin stats 
+
+  app.get("/admin-stats",verifyToken,verifyAdmin,async(req,res)=>{
+    const totalUsers = await userCollection.estimatedDocumentCount();
+    const totalPlants = await plantsCollection.estimatedDocumentCount();
+    console.log("Total Users: ",totalUsers);
+    console.log("Total Plants: ",totalPlants);
+    res.send({totalUsers,totalPlants});
+  })
+
+
   // app.get("/seller-order/:email",async(req,res)=>{
 
   //     const email = req.params.email;
@@ -342,12 +353,11 @@ async function run() {
   app.patch("/manageOrders/:id",async(req,res)=>{
     const id = req.params.id;
     const {status} = req.body;
-    const filter = {_id:new ObjectId(id)}
-
-    const updateDoc = {
-      $set:status
+    const filter = {_id: new ObjectId(id)}
+    const updatedDoc = {
+      $set:{status}
     }
-    const result = await orderCollection.updateOne(filter,updateDoc)
+    const result = await orderCollection.updateOne(filter,updatedDoc)
     res.send(result)
   })
  
