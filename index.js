@@ -292,16 +292,37 @@ async function run() {
   })
 
 
-  //admin stats 
+  //admin statistics api
 
-  app.get("/admin-stats",verifyToken,verifyAdmin,async(req,res)=>{
-    const totalUsers = await userCollection.estimatedDocumentCount();
+  app.get("/admin-stats",async(req,res)=>{
+    const totalUser = await userCollection.estimatedDocumentCount();
     const totalPlants = await plantsCollection.estimatedDocumentCount();
-    console.log("Total Users: ",totalUsers);
-    console.log("Total Plants: ",totalPlants);
-    res.send({totalUsers,totalPlants});
-  })
 
+   const allOrder = await orderCollection.find().toArray();
+
+  //  const totalRevenue = allOrder.reduce((sum,order)=>sum+order.price,0)
+
+  //  const totalOrder = allOrder.length;
+
+  const orderDetails = await orderCollection.aggregate([
+    {
+      $group:{
+        _id:null,
+        totalRevenue:{$sum:"$price"},
+        totalOrder:{$sum:1}
+      }
+    },{
+      $project:{
+        _id:0
+      }
+    }
+  ]).next();
+
+
+    
+    res.send({totalUser,totalPlants,...orderDetails});
+  })
+   
 
   // app.get("/seller-order/:email",async(req,res)=>{
 
