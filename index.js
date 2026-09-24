@@ -321,6 +321,17 @@ async function run() {
     res.send({totalUser,totalPlants,...orderDetails});
   })
    
+   app.post("/create-payment-intent",async(req,res)=>{
+    const {plantId,quantity} = req.body;
+    const plant = await plantsCollection.findOne({_id:new ObjectId(plantId)})
+    const totalPrice = plant?.price * quantity * 100;
+    if(!plant){
+      res.status(401).send({message:"Unauthorized"})
+    }
+    res.send({totalPrice});
+   })
+
+
 
   // app.get("/seller-order/:email",async(req,res)=>{
 
@@ -549,7 +560,9 @@ app.patch("/users/role/:email",verifyToken,verifyAdmin,async(req,res)=>{
     res.send(result);
   })
 
+  //payment intent api
 
+  
 
 
 await client.db("admin").command({ ping: 1 });
