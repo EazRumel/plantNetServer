@@ -1,12 +1,14 @@
+require("dotenv").config();
 
 const express = require("express");
 const jwt = require("jsonwebtoken")
 const cors = require("cors");
-require("dotenv").config();
+
 const cookieParser = require("cookie-parser");
 const morgan = require('morgan')
 
 const app = express()
+const stripe = require('stripe')(process.env.Payment_Secret_Key);
 const port = process.env.PORT || 3000; 
 
 
@@ -320,17 +322,28 @@ async function run() {
 
     res.send({totalUser,totalPlants,...orderDetails});
   })
-   
-   app.post("/create-payment-intent",async(req,res)=>{
+  
+  //create payment intent
+
+  app.post("/create-payment-intent",async(req,res)=>{
     const {plantId,quantity} = req.body;
     const plant = await plantsCollection.findOne({_id:new ObjectId(plantId)})
-    const totalPrice = plant?.price * quantity * 100;
+    const totalPrice = plant.price * quantity * 100;
     if(!plant){
-      res.status(401).send({message:"Unauthorized"})
+      res.status(401).send({message:"Unauthorized"});
     }
-    res.send({totalPrice});
-   })
 
+    const 
+{client_secret}
+ = await stripe.paymentIntents.create({
+  amount: totalPrice,
+  currency: 'usd',
+  automatic_payment_methods: {
+    enabled: true,
+  },
+});
+    res.send({clientSecret:client_secret});
+  })
 
 
   // app.get("/seller-order/:email",async(req,res)=>{
