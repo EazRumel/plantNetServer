@@ -40,6 +40,7 @@ app.use(morgan("dev"));
 
 
 const { MongoClient, ServerApiVersion, ObjectId, CommandSucceededEvent } = require('mongodb');
+const { pipeline } = require("node:stream");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.t89ec.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -71,6 +72,8 @@ async function run() {
    const plantsCollection = client.db("treePlanet").collection("plants");
 
    const cartCollection = client.db("treePlanet").collection("carts");
+
+  //  const paymentCollection = client.db("treePlanet").collection("payment");
 
  
 
@@ -133,16 +136,6 @@ async function run() {
       }
       next();
     }
-
-    //  const verifySeller = async(req,res,next)=>{
-    //   const email = req?.user?.email;
-    //   const query = {email: email}
-    //   const data = await userCollection.findOne(query);
-    //   if(!data && data.role !== "seller"){
-    //      return res.status(403).send({message:"Forbidden Access"})
-    //   }
-    //   next();
-    //  }
 
     const verifySeller = async(req,res,next)=>{
      const email = req?.user?.email;
@@ -296,15 +289,52 @@ async function run() {
 
   //admin statistics api
 
+ app.get("/order-stats", async (req, res) => {
+  const categoryStats = await orderCollection.aggregate([
+   {
+  $lookup: {
+    from: "plants",
+    let: {
+      plantId: { $toObjectId: "$plantId" }
+    },
+    pipeline: [
+      {
+        $match: {
+          $expr: {
+            $eq: ["$_id", "$$plantId"]
+          }
+        }
+      }
+    ],
+    as: "plants"
+  }
+},
+    {
+      $unwind: "$plants"
+    },
+    {
+      $group: {
+        _id: "$plants.category",
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        name: "$_id",
+        value: "$count"
+      }
+    }
+  ]).toArray();
+
+  res.send({categoryStats});
+});
+
   app.get("/admin-stats",async(req,res)=>{
     const totalUser = await userCollection.estimatedDocumentCount();
     const totalPlants = await plantsCollection.estimatedDocumentCount();
 
-   const allOrder = await orderCollection.find().toArray();
-
-  //  const totalRevenue = allOrder.reduce((sum,order)=>sum+order.price,0)
-
-  //  const totalOrder = allOrder.length;
+  //  const allOrder = await orderCollection.find().toArray();
 
   const orderDetails = await orderCollection.aggregate([
     {
@@ -318,9 +348,9 @@ async function run() {
         _id:0
       }
     }
-  ]).next();
+  ]).toArray();
 
-    res.send({totalUser,totalPlants,...orderDetails});
+    res.send({totalUser,totalPlants,...orderDetails[0]});
   })
   
   //create payment intent
