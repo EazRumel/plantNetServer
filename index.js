@@ -164,6 +164,33 @@ async function run() {
     res.send(result);
    })
 
+   app.patch("/plants/:id",async(req,res)=>{
+    const plant = req.body;
+    const id = req.params.id;
+    const filter = {_id:new ObjectId(id)};
+
+    const updatedDoc = {$set:{
+          plant_name:plant.name,
+          category:plant.category,
+          difficulty:plant.difficulty,
+          light:plant.light,
+          watering:plant.catering,
+          price:plant.price,
+          currency:plant.currency,
+          quantity:plant.quantity,
+          isFeatured:plant.isFeatured,
+          description:plant.description,
+          image:plant.imageURL,
+
+    }
+     
+    }
+    const result = await plantsCollection.updateOne(filter,updatedDoc);
+    res.send(result);
+
+
+   })
+
    app.get("/plants/seller",verifyToken,verifySeller,async(req,res)=>{
       const email = req.user.email;
       console.log("EmAIL: ",email)
@@ -327,7 +354,7 @@ async function run() {
     }
   ]).toArray();
 
-  res.send({categoryStats});
+  res.send(categoryStats);
 });
 
   app.get("/admin-stats",async(req,res)=>{
