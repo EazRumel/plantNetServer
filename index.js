@@ -158,16 +158,27 @@ async function run() {
     res.send(result); 
   })
 
+  app.get("/plants/seller",verifyToken,verifySeller,async(req,res)=>{
+      const email = req.user.email;
+      console.log("EmAIL: ",email)
+      const query = {"seller.email":email}
+      console.log("From Seller",query);
+      const result = await plantsCollection.find(query).toArray();
+      res.send(result);
+   })
+
    app.get("/plants",async(req,res)=>{
 
     const result = await plantsCollection.find().toArray();
     res.send(result);
    })
 
+
    app.patch("/plants/:id",async(req,res)=>{
     const plant = req.body;
     const id = req.params.id;
     const filter = {_id:new ObjectId(id)};
+    
 
     const updatedDoc = {$set:{
           plant_name:plant.name,
@@ -181,24 +192,13 @@ async function run() {
           isFeatured:plant.isFeatured,
           description:plant.description,
           image:plant.imageURL,
-
     }
-     
-    }
+  }
     const result = await plantsCollection.updateOne(filter,updatedDoc);
     res.send(result);
-
-
    })
 
-   app.get("/plants/seller",verifyToken,verifySeller,async(req,res)=>{
-      const email = req.user.email;
-      console.log("EmAIL: ",email)
-      const query = {"seller.email":email}
-      console.log("From Seller",query);
-      const result = await plantsCollection.find(query).toArray();
-      res.send(result);
-   })
+   
 
    app.delete("/plants/:id",verifyToken,verifySeller,async(req,res)=>{
     const id = req.params.id;
