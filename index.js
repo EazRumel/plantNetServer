@@ -181,17 +181,17 @@ async function run() {
     
 
     const updatedDoc = {$set:{
-          plant_name:plant.name,
+          name:plant.name,
           category:plant.category,
           difficulty:plant.difficulty,
           light:plant.light,
-          watering:plant.catering,
+          watering:plant.watering,
           price:plant.price,
           currency:plant.currency,
           quantity:plant.quantity,
           isFeatured:plant.isFeatured,
           description:plant.description,
-          image:plant.imageURL,
+          image:plant.image,
     }
   }
     const result = await plantsCollection.updateOne(filter,updatedDoc);
