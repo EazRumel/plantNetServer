@@ -607,7 +607,7 @@ app.patch("/users/role/:email",verifyToken,verifyAdmin,async(req,res)=>{
 
   //cart related apis
 
-  app.post("/carts",async(req,res)=>{
+  app.post("/carts",verifyToken,async(req,res)=>{
     const cartItem = req.body;
     const result = await cartCollection.insertOne(cartItem);
     res.send(result);
@@ -622,6 +622,20 @@ app.patch("/users/role/:email",verifyToken,verifyAdmin,async(req,res)=>{
     const result = await cartCollection.find(query).toArray();
     res.send(result);
   })
+
+
+  app.patch("/carts/:id",async(req,res)=>{
+    const cartId = req.params.id;
+    const {quantity} = req.body;
+    const query = {_id:new ObjectId(cartId)}
+    const updateDoc = {
+      $set:
+      {quantity}
+    }
+    const result = await cartCollection.updateOne(query,updateDoc);
+    res.send(result);
+    })
+
 
   app.delete("/carts/:id",async(req,res)=>{
     const id = req.params.id;
